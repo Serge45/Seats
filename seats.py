@@ -2,8 +2,11 @@
 import random
 import os
 import codecs
+import functools
 import Tkinter as tk
 import tkMessageBox
+
+from lineinputdialog import LineInputDialog
 
 
 class Seats:
@@ -37,23 +40,24 @@ class Seats:
 
         self.go_button.grid(row=1, 
                             column=0,
-                            sticky=tk.W+tk.E
+                            sticky=tk.W+tk.E,
                             )
 
         self.shuffle_button.grid(row=1,
                                  column=1,
-                                 sticky=tk.W+tk.E
+                                 sticky=tk.W
                                  ) 
 
         self.save_button = tk.Button(master,
                                      text=u'Save',
                                      cursor="",
-                                     command=self.on_save_button_clicked
+                                     command=self.on_save_button_clicked,
                                      )
 
         self.save_button.grid(row=1, 
                               column=2,
-                              sticky=tk.W+tk.E
+                              sticky=tk.E,
+                              pady=5
                               )
 
         self.row_count = row_count
@@ -69,13 +73,14 @@ class Seats:
             for c in xrange(self.col_count):
                 if self.enable_button(r, c):
                     b = tk.Button(self.frame, 
-                                  text=self.names[name_idx]
+                                  text=self.names[name_idx],
+                                  command=functools.partial(self.on_seat_button_clicked, idx=name_idx)
                                   )
 
                     b.grid(row=r, column=c,
                            padx=5, pady=5
                            )
-                    self.buttons.append(b)
+                    self.buttons.append([b, name_idx])
                     name_idx += 1
 
     def enable_button(self, row, col):
@@ -112,21 +117,24 @@ class Seats:
                     break
             self.parent.after(t, self.random_choose)
 
+    def load_names(self, file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'):
+        with codecs.open(file_name, 'r', encoding='utf8') as f:
+            del self.names[:]
+            for lines in f:
+                self.names.append(lines.rstrip())
+
     def on_go_button_clicked(self):
         self.go_button.config(state=tk.DISABLED)
         self.parent.config(cursor='wait')
         self.current_iteration = 0 
         self.random_choose()
 
-    def load_names(self, file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'):
-        with codecs.open(file_name, 'r', encoding='utf8') as f:
-            for lines in f:
-                self.names.append(lines.rstrip())
 
     def on_shuffle_button_clicked(self):
         random.shuffle(self.names)
         for i, btn in enumerate(self.buttons):
-            btn.config(text=self.names[i])            
+            btn[0].config(text=self.names[i])            
+            btn[1] = i
 
     def on_save_button_clicked(self):
         if tkMessageBox.askyesno(u'Warning', u'This will overrite existing setting, OK?'):
@@ -135,8 +143,15 @@ class Seats:
             with codecs.open(file_name, 'w', encoding='utf8') as f:
                 for name in self.names:
                     f.write(name + u'\n')
-            return
 
+            self.load_names()        
+
+    def on_seat_button_clicked(self, idx):
+        self.input_dialog = LineInputDialog(self.parent, self.names[idx])
+        if self.input_dialog.message:
+            self.buttons[idx][0].config(text=self.input_dialog.message)
+            self.names[idx] = self.input_dialog.message
+            
 if __name__ == '__main__':
     root = tk.Tk()
     seats = Seats(root, 6, 37)
