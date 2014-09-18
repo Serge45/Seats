@@ -21,17 +21,28 @@ class Seats:
         tk.Grid.rowconfigure(master, 0, weight=1)
         tk.Grid.columnconfigure(master, 0, weight=1)
         self.frame = tk.Frame(master)
-        self.frame.grid(row=0, column=0)
+        self.frame.grid(row=0, column=0, columnspan=2)
         self.go_button = tk.Button(master, 
                                    text=u'Go',
                                    cursor='hand2',
                                    command=self.on_go_button_clicked
                                    )
 
+        self.shuffle_button = tk.Button(master,
+                                         text=u'Shuffle',
+                                         cursor='hand2',
+                                         command=self.on_shuffle_button_clicked
+                                         )
+
         self.go_button.grid(row=1, 
                             column=0,
                             sticky=tk.W+tk.E
                             )
+
+        self.shuffle_button.grid(row=1,
+                                  column=1,
+                                  sticky=tk.W+tk.E
+                                  ) 
 
         self.row_count = row_count
         self.col_count = total / row_count
@@ -99,6 +110,11 @@ class Seats:
         with codecs.open(file_name, 'r', encoding='utf8') as f:
             for lines in f:
                 self.names.append(lines.rstrip())
+
+    def on_shuffle_button_clicked(self):
+        random.shuffle(self.names)
+        for i, btn in enumerate(self.buttons):
+            btn.config(text=self.names[i])            
 
 
 if __name__ == '__main__':
