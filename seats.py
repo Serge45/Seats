@@ -3,6 +3,7 @@ import random
 import os
 import codecs
 import Tkinter as tk
+import tkMessageBox
 
 
 class Seats:
@@ -21,7 +22,7 @@ class Seats:
         tk.Grid.rowconfigure(master, 0, weight=1)
         tk.Grid.columnconfigure(master, 0, weight=1)
         self.frame = tk.Frame(master)
-        self.frame.grid(row=0, column=0, columnspan=2)
+        self.frame.grid(row=0, column=0, columnspan=3)
         self.go_button = tk.Button(master, 
                                    text=u'Go',
                                    cursor='hand2',
@@ -40,9 +41,20 @@ class Seats:
                             )
 
         self.shuffle_button.grid(row=1,
-                                  column=1,
-                                  sticky=tk.W+tk.E
-                                  ) 
+                                 column=1,
+                                 sticky=tk.W+tk.E
+                                 ) 
+
+        self.save_button = tk.Button(master,
+                                     text=u'Save',
+                                     cursor="",
+                                     command=self.on_save_button_clicked
+                                     )
+
+        self.save_button.grid(row=1, 
+                              column=2,
+                              sticky=tk.W+tk.E
+                              )
 
         self.row_count = row_count
         self.col_count = total / row_count
@@ -116,6 +128,14 @@ class Seats:
         for i, btn in enumerate(self.buttons):
             btn.config(text=self.names[i])            
 
+    def on_save_button_clicked(self):
+        if tkMessageBox.askyesno(u'Warning', u'This will overrite existing setting, OK?'):
+            file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'
+
+            with codecs.open(file_name, 'w', encoding='utf8') as f:
+                for name in self.names:
+                    f.write(name + u'\n')
+            return
 
 if __name__ == '__main__':
     root = tk.Tk()
