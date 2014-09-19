@@ -99,10 +99,10 @@ class Seats:
 
         if self.chosen_button != self.buttons[idx]:
             if self.chosen_button:
-                self.chosen_button.config(background=self.parent.cget("bg"))
+                self.chosen_button[0].config(background=self.parent.cget("bg"))
 
             self.chosen_button = self.buttons[idx]
-            self.chosen_button.config(background='green')
+            self.chosen_button[0].config(background='green')
 
         self.current_iteration += 1
 
@@ -131,6 +131,9 @@ class Seats:
 
 
     def on_shuffle_button_clicked(self):
+        if self.chosen_button:
+            self.chosen_button[0].config(background=self.parent.cget("bg"))
+
         random.shuffle(self.names)
         for i, btn in enumerate(self.buttons):
             btn[0].config(text=self.names[i])            
