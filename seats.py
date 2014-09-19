@@ -5,8 +5,10 @@ import codecs
 import functools
 import Tkinter as tk
 import tkMessageBox
+import tkFileDialog
 
 from lineinputdialog import LineInputDialog
+from student import Student
 
 
 class Seats:
@@ -21,19 +23,26 @@ class Seats:
         self.load_names()
 
         self.parent = master
+        self.row_count = row_count
+        self.col_count = total / row_count
+        self.total = total
         random.seed()
-        tk.Grid.rowconfigure(master, 0, weight=1)
-        tk.Grid.columnconfigure(master, 0, weight=1)
-        self.frame = tk.Frame(master)
-        self.frame.grid(row=0, column=0, columnspan=3)
-        self.go_button = tk.Button(master, 
-                                   text=u'Go',
+
+        self.init_gui()
+
+    def init_gui(self):
+        tk.Grid.rowconfigure(self.parent, 0, weight=1)
+        tk.Grid.columnconfigure(self.parent, 0, weight=1)
+        self.frame = tk.Frame(self.parent)
+        self.frame.grid(row=0, column=0, columnspan=4)
+        self.go_button = tk.Button(self.parent, 
+                                   text='Go',
                                    cursor='hand2',
                                    command=self.on_go_button_clicked
                                    )
 
-        self.shuffle_button = tk.Button(master,
-                                         text=u'Shuffle',
+        self.shuffle_button = tk.Button(self.parent,
+                                         text='Shuffle',
                                          cursor='hand2',
                                          command=self.on_shuffle_button_clicked
                                          )
@@ -48,8 +57,8 @@ class Seats:
                                  sticky=tk.W
                                  ) 
 
-        self.save_button = tk.Button(master,
-                                     text=u'Save',
+        self.save_button = tk.Button(self.parent,
+                                     text='Save',
                                      cursor="",
                                      command=self.on_save_button_clicked,
                                      )
@@ -60,10 +69,17 @@ class Seats:
                               pady=5
                               )
 
-        self.row_count = row_count
-        self.col_count = total / row_count
+        self.save_as_json_button = tk.Button(self.parent,
+                                             text='Save json',
+                                             command=self.on_save_as_json_button_clicked
+                                             )
 
-        if total % row_count:
+        self.save_as_json_button.grid(row = 1, 
+                                      column=3,
+                                      pady=5)
+
+
+        if self.total % self.row_count:
             self.col_count += 1
 
         self.buttons = []
@@ -80,8 +96,9 @@ class Seats:
                     b.grid(row=r, column=c,
                            padx=5, pady=5
                            )
-                    self.buttons.append([b, name_idx])
+                    self.buttons.append([b, name_idx, r, c])
                     name_idx += 1
+                    
 
     def enable_button(self, row, col):
         if row == 0 and col == 0:
@@ -140,20 +157,39 @@ class Seats:
             btn[1] = i
 
     def on_save_button_clicked(self):
-        if tkMessageBox.askyesno(u'Warning', u'This will overrite existing setting, OK?'):
+        if tkMessageBox.askyesno('Warning', 'This will overrite existing setting, OK?'):
             file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'
 
             with codecs.open(file_name, 'w', encoding='utf8') as f:
                 for name in self.names:
-                    f.write(name + u'\n')
+                    f.write(name + '\n')
 
             self.load_names()        
 
     def on_seat_button_clicked(self, idx):
+        print self.buttons[idx][2], self.buttons[idx][3]
+
         self.input_dialog = LineInputDialog(self.parent, self.names[idx])
         if self.input_dialog.message:
             self.buttons[idx][0].config(text=self.input_dialog.message)
             self.names[idx] = self.input_dialog.message
+
+    def on_save_as_json_button_clicked(self):
+        fName = tkFileDialog.asksaveasfilename(defaultextension='.json',
+                                           initialfile='seats.json'
+                                           )
+
+        if fName is None:
+            return False
+
+        f = codecs.open(fName, 'w', encoding='utf8')    
+
+        for btn in self.buttons:
+            s = Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0)
+            f.write(s.as_json())
+
+        f.close()
+        return True      
             
 if __name__ == '__main__':
     root = tk.Tk()

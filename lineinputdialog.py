@@ -7,7 +7,7 @@ class LineInputDialog(tkSimpleDialog.Dialog):
         Grid.rowconfigure(parent, 0, weight=1)
         Grid.columnconfigure(parent, 0, weight=1)
 
-        Label(parent, text=u"請輸入姓名").grid(row=0, column=0, columnspan=2, sticky=E+W)
+        Label(parent, text="請輸入姓名").grid(row=0, column=0, columnspan=2, sticky=E+W)
 
         self.line_input = Entry(parent)
         self.line_input.grid(row=1, column=0, columnspan=2, sticky=E+W)
