@@ -3,6 +3,7 @@ import random
 import os
 import codecs
 import functools
+import json
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
@@ -29,6 +30,8 @@ class Seats:
         random.seed()
 
         self.init_gui()
+        self.init_seat_buttons()
+        #self.init_seat_buttons_with_json()
 
     def init_gui(self):
         tk.Grid.rowconfigure(self.parent, 0, weight=1)
@@ -79,6 +82,8 @@ class Seats:
                                       pady=5)
 
 
+
+    def init_seat_buttons(self):                
         if self.total % self.row_count:
             self.col_count += 1
 
@@ -98,7 +103,36 @@ class Seats:
                            )
                     self.buttons.append([b, name_idx, r, c])
                     name_idx += 1
-                    
+
+    def init_seat_buttons_with_json(self, 
+                                    file_name=os.path.dirname(os.path.realpath(__file__))+'/seats.json'):
+        with codecs.open(file_name, 'r', encoding='utf-8') as f:
+            in_str = f.read()
+            in_json = json.loads(in_str)
+
+            del self.names[:]
+            name_idx=0
+
+            self.buttons = []
+
+            for js in in_json:
+                r = js[u'row']
+                c = js[u'col']
+                text = js[u'name'].encode('utf-8')
+
+                self.names += text
+
+                b = tk.Button(self.frame, 
+                              text=text,
+                              command=functools.partial(self.on_seat_button_clicked, idx=name_idx)
+                              )
+
+                b.grid(row=r, column=c,
+                       padx=5, pady=5
+                       )
+                self.buttons.append([b, name_idx, r, c])
+                name_idx += 1
+        return
 
     def enable_button(self, row, col):
         if row == 0 and col == 0:
@@ -135,7 +169,7 @@ class Seats:
             self.parent.after(t, self.random_choose)
 
     def load_names(self, file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'):
-        with codecs.open(file_name, 'r', encoding='utf8') as f:
+        with codecs.open(file_name, 'r', encoding='utf-8') as f:
             del self.names[:]
             for lines in f:
                 self.names.append(lines.rstrip())
@@ -160,7 +194,7 @@ class Seats:
         if tkMessageBox.askyesno('Warning', 'This will overrite existing setting, OK?'):
             file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'
 
-            with codecs.open(file_name, 'w', encoding='utf8') as f:
+            with codecs.open(file_name, 'w', encoding='utf-8') as f:
                 for name in self.names:
                     f.write(name + '\n')
 
@@ -182,11 +216,15 @@ class Seats:
         if fName is None:
             return False
 
-        f = codecs.open(fName, 'w', encoding='utf8')    
+        f = codecs.open(fName, 'w', encoding='utf-8')    
+
+
+        dst = []
 
         for btn in self.buttons:
-            s = Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0)
-            f.write(s.as_json())
+            dst.append(Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0))
+
+        json.dump(dst, f, ensure_ascii=False, default=lambda obj: obj.__dict__)    
 
         f.close()
         return True      

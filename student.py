@@ -4,14 +4,14 @@ import json
 class Student:
     def __init__(self, name='blank', row=0, column=0, count=0):
         self.name = name
-        self.position_row = row
-        self.position_column = column
+        self.row = row
+        self.col = column
         self.count = 0
     def as_json(self):
         d = {}
         d['name'] = self.name
-        d['row'] = self.position_row
-        d['col'] = self.position_column
+        d['row'] = self.row
+        d['col'] = self.col
         d['count'] = self.count
 
         return json.dumps(d, ensure_ascii=False)
