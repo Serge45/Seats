@@ -23,8 +23,6 @@ class Seats:
     names = []
 
     def __init__(self, master, row_count, total):
-        self.load_names()
-
         self.parent = master
         self.row_count = row_count
         self.col_count = total / row_count
@@ -32,7 +30,6 @@ class Seats:
         random.seed()
 
         self.init_gui()
-        #self.init_seat_buttons()
         self.init_seat_buttons_with_json()
 
     def init_gui(self):
@@ -62,28 +59,24 @@ class Seats:
                                  sticky=tk.W
                                  ) 
 
-        self.save_button = tk.Button(self.parent,
-                                     text=u'Save',
-                                     cursor="",
-                                     command=self.on_save_button_clicked,
-                                     )
-
-        self.save_button.grid(row=1, 
-                              column=2,
-                              sticky=tk.E,
-                              pady=5
-                              )
-
         self.save_as_json_button = tk.Button(self.parent,
                                              text=u'Save json',
                                              command=self.on_save_as_json_button_clicked
                                              )
 
         self.save_as_json_button.grid(row = 1, 
-                                      column=3,
+                                      column=2,
                                       pady=5)
 
 
+        self.load_json_button = tk.Button(self.parent,
+                                             text=u'Load json',
+                                             command=self.on_load_json_button_clicked
+                                             )
+
+        self.load_json_button.grid(row = 1, 
+                                   column=3,
+                                   pady=5)
 
     def init_seat_buttons(self):                
         if self.total % self.row_count:
@@ -117,12 +110,15 @@ class Seats:
 
             self.buttons = []
 
+            for widget in self.frame.grid_slaves():
+                widget.grid_remove()
+
             for js in in_json:
                 r = js[u'row']
                 c = js[u'col']
                 text = js[u'name'].encode('utf-8')
 
-                self.names += text
+                self.names.append(text)
 
                 b = tk.Button(self.frame, 
                               text=text,
@@ -132,9 +128,9 @@ class Seats:
                 b.grid(row=r, column=c,
                        padx=5, pady=5
                        )
-                self.buttons.append([b, name_idx, r, c])
+                num = int(js[u'num'])
+                self.buttons.append([b, name_idx, r, c, num])
                 name_idx += 1
-        return
 
     def enable_button(self, row, col):
         if row == 0 and col == 0:
@@ -163,7 +159,6 @@ class Seats:
                 self.chosen_button[0].config(bg='green')
             else:
                 self.chosen_button[0].config(fg='green')
-
 
         self.current_iteration += 1
 
@@ -200,16 +195,6 @@ class Seats:
             btn[0].config(text=self.names[i])            
             btn[1] = i
 
-    def on_save_button_clicked(self):
-        if tkMessageBox.askyesno(u'Warning', u'This will overrite existing setting, OK?'):
-            file_name=os.path.dirname(os.path.realpath(__file__))+'/names.txt'
-
-            with codecs.open(file_name, 'w', encoding='utf-8') as f:
-                for name in self.names:
-                    f.write(name + '\n')
-
-            self.load_names()        
-
     def on_seat_button_clicked(self, idx):
         self.input_dialog = LineInputDialog(self.parent, self.names[idx])
         if self.input_dialog.message:
@@ -221,7 +206,7 @@ class Seats:
                                                initialfile='seats.json'
                                                )
 
-        if fName is None:
+        if len(fName) == 0:
             return False
 
         f = codecs.open(fName, 'w', encoding='utf-8')    
@@ -230,12 +215,24 @@ class Seats:
         dst = []
 
         for btn in self.buttons:
-            dst.append(Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0))
+            s = Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0, num=0)
+            dst.append(s)
 
         json.dump(dst, f, ensure_ascii=False, default=lambda obj: obj.__dict__)    
 
         f.close()
         return True      
+
+    def on_load_json_button_clicked(self):
+        fName = tkFileDialog.askopenfilename(defaultextension='.json',
+                                               initialfile='seats.json'
+                                             )
+
+        if len(fName) == 0:
+            return False
+
+        self.init_seat_buttons_with_json(fName)
+        return True
             
 if __name__ == '__main__':
     root = tk.Tk()

@@ -6,10 +6,6 @@ import collections
 import Tkinter as tk
 
 class SeatsLayout:
-    layout_types = [('Grid', 'GRID'),
-                    ('Edge', 'EDGE'),
-                    ('Group', 'GROUP'),
-                    ]
     seat_buttons = collections.defaultdict(list)
     student_label = u'Student'
     none_label = u'None'                
@@ -24,15 +20,12 @@ class SeatsLayout:
         tk.Grid.rowconfigure(self.parent, 0, weight=1)
         tk.Grid.columnconfigure(self.parent, 0, weight=1)
 
-        self.init_layout_buttons()
+        #self.init_layout_buttons()
         self.init_size_buttons()
         self.init_seat_panel()
         self.update_seat_buttons()
 
     def init_layout_buttons(self):
-        self.layout_group = tk.StringVar()
-        self.layout_group.set('GRID')
-
         col = 0
         tk.Grid.rowconfigure(self.parent, 0, weight=1)
 
@@ -51,6 +44,9 @@ class SeatsLayout:
 
     def init_size_buttons(self):
         tk.Grid.rowconfigure(self.parent, 1, weight=1)
+        for col in xrange(4):
+            tk.Grid.columnconfigure(self.parent, col, weight=1)
+            
         self.row_label = tk.Label(text='Row')
         self.col_label = tk.Label(text='Col')
 
@@ -79,28 +75,15 @@ class SeatsLayout:
 
         self.seat_buttons.clear()   
 
-        if self.layout_group.get() == 'GRID':
-            for j in xrange(self.row_count.get()):
-                for i in xrange(self.col_count.get()):
-                    b = tk.Button(self.seat_panel, text=self.student_label,
-                                  command= functools.partial(self.on_seat_button_clicked, 
-                                                             row=j, col=i
-                                                             )
-                                  )
-                    b.grid(row=j, column=i, padx=4, pady=4)
-                    self.seat_buttons[j].append(b)
-        elif self.layout_group.get() == 'EDGE':
-            for j in xrange(self.row_count.get()):
-                for i in xrange(self.col_count.get()):
-                    if j == 0 or j == self.row_count.get() - 1 \
-                        or i == 0 or i == self.col_count.get() - 1:
-                        b = tk.Button(self.seat_panel, text=self.student_label,
-                                      command= functools.partial(self.on_seat_button_clicked, 
-                                                                 row=j, col=i
-                                                                 )
-                                     )
-                        b.grid(row=j, column=i, padx=4, pady=4)
-                        self.seat_buttons[j].append(b)
+        for j in xrange(self.row_count.get()):
+            for i in xrange(self.col_count.get()):
+                b = tk.Button(self.seat_panel, text=self.student_label,
+                              command= functools.partial(self.on_seat_button_clicked, 
+                                                         row=j, col=i
+                                                         )
+                              )
+                b.grid(row=j, column=i, padx=4, pady=4)
+                self.seat_buttons[j].append([b, True])
 
     def on_layout_button_clicked(self):
         layout_type = self.layout_group.get()
@@ -109,10 +92,12 @@ class SeatsLayout:
     def on_seat_button_clicked(self, row, col):
         btn = self.seat_buttons[row][col]
 
-        if btn.cget('text') == self.student_label:
-            btn.config(text=self.none_label)
+        if btn[0].cget('text') == self.student_label:
+            btn[0].config(text=self.none_label)
+            btn[1] = False
         else:
-            btn.config(text=self.student_label)
+            btn[0].config(text=self.student_label)
+            btn[1] = True
 
 if __name__ == '__main__':
     root = tk.Tk()
