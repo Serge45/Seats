@@ -6,7 +6,9 @@ import codecs
 import functools
 import json
 from Tkinter import *
-from ttk import *
+
+if platform != 'darwin':
+    from ttk import *
 import tkMessageBox
 import tkFileDialog
 
@@ -90,7 +92,7 @@ class Seats:
             for c in xrange(self.col_count):
                 if self.enable_button(r, c):
                     b = Button(self.frame, 
-                                  text=self.names[name_idx],
+                                  text=self.names[name_idx][0],
                                   command=functools.partial(self.on_seat_button_clicked, idx=name_idx)
                                   )
 
@@ -118,8 +120,9 @@ class Seats:
                 r = js[u'row']
                 c = js[u'col']
                 text = js[u'name'].encode('utf-8')
+                num = int(js[u'num'])
 
-                self.names.append(text)
+                self.names.append([text, num])
 
                 b = Button(self.frame, 
                               text=text,
@@ -129,7 +132,6 @@ class Seats:
                 b.grid(row=r, column=c,
                        padx=5, pady=5
                        )
-                num = int(js[u'num'])
                 self.buttons.append([b, name_idx, r, c, num])
                 name_idx += 1
 
@@ -193,14 +195,18 @@ class Seats:
 
         random.shuffle(self.names)
         for i, btn in enumerate(self.buttons):
-            btn[0].config(text=self.names[i])            
-            btn[1] = i
+            btn[0].config(text=self.names[i][0])            
+            btn[1] = self.names[i][1]
 
     def on_seat_button_clicked(self, idx):
-        self.input_dialog = LineInputDialog(self.parent, self.names[idx])
+        self.input_dialog = LineInputDialog(self.parent, 
+                                            self.names[idx][0],
+                                            self.names[idx][1]
+                                            )
         if self.input_dialog.message:
-            self.buttons[idx][0].config(text=self.input_dialog.message)
-            self.names[idx] = self.input_dialog.message
+            self.buttons[idx][0].config(text=self.input_dialog.message[0])
+            self.names[idx][0] = self.input_dialog.message[0]
+            self.names[idx][1] = int(self.input_dialog.message[1])
 
     def on_save_as_json_button_clicked(self):
         fName = tkFileDialog.asksaveasfilename(defaultextension='.json',
@@ -211,7 +217,6 @@ class Seats:
             return False
 
         f = codecs.open(fName, 'w', encoding='utf-8')    
-
 
         dst = []
 
@@ -226,7 +231,7 @@ class Seats:
 
     def on_load_json_button_clicked(self):
         fName = tkFileDialog.askopenfilename(defaultextension='.json',
-                                               initialfile='seats.json'
+                                             initialfile='seats.json'
                                              )
 
         if len(fName) == 0:

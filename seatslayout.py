@@ -2,12 +2,17 @@
 
 import functools
 import collections
+import codecs
+import json
+from sys import platform
 
 from Tkinter import *
-from ttk import *
 import tkFileDialog
 
 from student import Student
+
+if platform != 'darwin':
+    from ttk import *
 
 class SeatsLayout:
     seat_buttons = collections.defaultdict(list)
@@ -116,7 +121,25 @@ class SeatsLayout:
             btn[1] = True
 
     def on_save_json_button_clicked(self):
-        print 'save!!'        
+        fName = tkFileDialog.asksaveasfilename(defaultextension='.json',
+                                               initialfile='seats.json'
+                                               )
+
+        if len(fName) == 0:
+            return False
+
+        with codecs.open(fName, 'w', encoding='utf-8') as f:
+            dst = []
+            for row, item in self.seat_buttons.iteritems():
+                for idx, col in enumerate(item):
+                    if col[1] == True:
+                        s = Student(name=u'Blank', row=row, column=idx)
+                        dst.append(s)
+
+            json.dump(dst, f, ensure_ascii=False, default=lambda obj: obj.__dict__)    
+            return True
+
+
 
 if __name__ == '__main__':
     root = Tk()
