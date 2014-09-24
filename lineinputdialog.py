@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from Tkinter import *
+from ttk import *
 import tkSimpleDialog
 
 class LineInputDialog(tkSimpleDialog.Dialog):

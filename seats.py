@@ -5,7 +5,8 @@ from sys import platform
 import codecs
 import functools
 import json
-import Tkinter as tk
+from Tkinter import *
+from ttk import *
 import tkMessageBox
 import tkFileDialog
 
@@ -33,17 +34,17 @@ class Seats:
         self.init_seat_buttons_with_json()
 
     def init_gui(self):
-        tk.Grid.rowconfigure(self.parent, 0, weight=1)
-        tk.Grid.columnconfigure(self.parent, 0, weight=1)
-        self.frame = tk.Frame(self.parent)
+        Grid.rowconfigure(self.parent, 0, weight=1)
+        Grid.columnconfigure(self.parent, 0, weight=1)
+        self.frame = Frame(self.parent)
         self.frame.grid(row=0, column=0, columnspan=4)
-        self.go_button = tk.Button(self.parent, 
+        self.go_button = Button(self.parent, 
                                    text=u'Go',
                                    cursor=u'hand2',
                                    command=self.on_go_button_clicked
                                    )
 
-        self.shuffle_button = tk.Button(self.parent,
+        self.shuffle_button = Button(self.parent,
                                          text=u'Shuffle',
                                          cursor=u'hand2',
                                          command=self.on_shuffle_button_clicked
@@ -51,15 +52,15 @@ class Seats:
 
         self.go_button.grid(row=1, 
                             column=0,
-                            sticky=tk.W+tk.E,
+                            sticky=W+E,
                             )
 
         self.shuffle_button.grid(row=1,
                                  column=1,
-                                 sticky=tk.W
+                                 sticky=W
                                  ) 
 
-        self.save_as_json_button = tk.Button(self.parent,
+        self.save_as_json_button = Button(self.parent,
                                              text=u'Save json',
                                              command=self.on_save_as_json_button_clicked
                                              )
@@ -69,7 +70,7 @@ class Seats:
                                       pady=5)
 
 
-        self.load_json_button = tk.Button(self.parent,
+        self.load_json_button = Button(self.parent,
                                              text=u'Load json',
                                              command=self.on_load_json_button_clicked
                                              )
@@ -88,7 +89,7 @@ class Seats:
         for r in xrange(self.row_count):
             for c in xrange(self.col_count):
                 if self.enable_button(r, c):
-                    b = tk.Button(self.frame, 
+                    b = Button(self.frame, 
                                   text=self.names[name_idx],
                                   command=functools.partial(self.on_seat_button_clicked, idx=name_idx)
                                   )
@@ -120,7 +121,7 @@ class Seats:
 
                 self.names.append(text)
 
-                b = tk.Button(self.frame, 
+                b = Button(self.frame, 
                               text=text,
                               command=functools.partial(self.on_seat_button_clicked, idx=name_idx)
                               )
@@ -148,22 +149,20 @@ class Seats:
 
         if self.chosen_button != self.buttons[idx]:
             if self.chosen_button:
-                if platform != 'darwin':
-                    self.chosen_button[0].config(background=self.parent.cget("bg"))
-                else:
-                    self.chosen_button[0].config(foreground="black")
+                style = Style()
+                style.configure('normal.TButton')
+                self.chosen_button[0].config(style='normal.TButton')
 
             self.chosen_button = self.buttons[idx]
 
-            if platform != 'darwin':
-                self.chosen_button[0].config(bg='green')
-            else:
-                self.chosen_button[0].config(fg='green')
+            style = Style()
+            style.configure('highlight.TButton', background='red')
+            self.chosen_button[0].config(style='highlight.TButton')
 
         self.current_iteration += 1
 
         if self.current_iteration > self.random_iteration:
-            self.go_button.config(state=tk.NORMAL)
+            self.go_button.config(state=NORMAL)
             self.parent.config(cursor='')
         else:
             t = 100
@@ -180,7 +179,7 @@ class Seats:
                 self.names.append(lines.rstrip())
 
     def on_go_button_clicked(self):
-        self.go_button.config(state=tk.DISABLED)
+        self.go_button.config(state=DISABLED)
         self.parent.config(cursor=u'wait')
         self.current_iteration = 0 
         self.random_choose()
@@ -188,7 +187,9 @@ class Seats:
 
     def on_shuffle_button_clicked(self):
         if self.chosen_button:
-            self.chosen_button[0].config(background=self.parent.cget("bg"))
+            style = Style()
+            style.configure('normal.TButton')
+            self.chosen_button[0].config(style='normal.TButton')
 
         random.shuffle(self.names)
         for i, btn in enumerate(self.buttons):
@@ -235,6 +236,6 @@ class Seats:
         return True
             
 if __name__ == '__main__':
-    root = tk.Tk()
+    root = Tk()
     seats = Seats(root, 6, 37)
     root.mainloop()
