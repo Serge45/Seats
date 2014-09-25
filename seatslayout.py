@@ -17,7 +17,7 @@ if platform != 'darwin':
 class SeatsLayout:
     seat_buttons = collections.defaultdict(list)
     student_label = u'Student'
-    none_label = u'None'                
+    none_label = u''                
 
 
     def __init__(self, parent):
@@ -53,31 +53,30 @@ class SeatsLayout:
             col += 1
 
     def init_size_buttons(self):
-        self.size_panels = [Frame(self.parent), Frame(self.parent),]
+        self.size_panel = Frame(self.parent)
 
-        for i, panel in enumerate(self.size_panels):
-            panel.grid(row=0, column=i, sticky=W)
+        self.size_panel.grid(row=0, column=0, sticky=W)
         
         Grid.rowconfigure(self.parent, 1, weight=1)
         for col in xrange(2):
             Grid.columnconfigure(self.parent, col, weight=1)
             
-        self.row_label = Label(self.size_panels[0], text=u'Row')
-        self.col_label = Label(self.size_panels[1], text=u'Col')
+        self.row_label = Label(self.size_panel, text=u'Row')
+        self.col_label = Label(self.size_panel, text=u'Col')
 
-        self.row_spinbox = Spinbox(self.size_panels[0], from_=2, to=10, width=3, 
+        self.row_spinbox = Spinbox(self.size_panel, from_=2, to=10, width=3, 
                                    textvariable=self.row_count,
                                    command=self.update_seat_buttons
                                    )
-        self.col_spinbox = Spinbox(self.size_panels[1], from_=2, to=10, width=3,
+        self.col_spinbox = Spinbox(self.size_panel, from_=2, to=10, width=3,
                                    textvariable=self.col_count,
                                    command=self.update_seat_buttons
                                    )
 
-        self.row_label.grid(row=0, column=0)
-        self.row_spinbox.grid(row=0, column=1, padx=4, pady=4)
-        self.col_label.grid(row=0, column=0)
-        self.col_spinbox.grid(row=0, column=1, padx=4, pady=4)
+        self.row_label.grid(row=0, column=0, sticky=W)
+        self.row_spinbox.grid(row=0, column=1, padx=4, pady=4, sticky=W)
+        self.col_label.grid(row=0, column=2, sticky=W)
+        self.col_spinbox.grid(row=0, column=3, padx=4, pady=4, sticky=W)
 
     def init_save_json_button(self):
         self.save_json_button = Button(self.parent, text=u'Save',
@@ -133,7 +132,7 @@ class SeatsLayout:
             for row, item in self.seat_buttons.iteritems():
                 for idx, col in enumerate(item):
                     if col[1] == True:
-                        s = Student(name=u'Blank', row=row, column=idx)
+                        s = Student(name=u'', row=row, column=idx)
                         dst.append(s)
 
             json.dump(dst, f, ensure_ascii=False, default=lambda obj: obj.__dict__)    

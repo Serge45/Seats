@@ -5,6 +5,7 @@ from sys import platform
 import codecs
 import functools
 import json
+import csv
 from Tkinter import *
 
 if platform != 'darwin':
@@ -24,6 +25,7 @@ class Seats:
     random_iteration_step = (500, 250, 100, 50)
     random_iteration_bound = (47, 40, 25, 0)
     names = []
+    num_to_name = {}
 
     def __init__(self, master, row_count, total):
         self.parent = master
@@ -34,12 +36,13 @@ class Seats:
 
         self.init_gui()
         self.init_seat_buttons_with_json()
+        self.load_name_num_list()
 
     def init_gui(self):
         Grid.rowconfigure(self.parent, 0, weight=1)
         Grid.columnconfigure(self.parent, 0, weight=1)
         self.frame = Frame(self.parent)
-        self.frame.grid(row=0, column=0, columnspan=4)
+        self.frame.grid(row=0, column=0, columnspan=5)
         self.go_button = Button(self.parent, 
                                    text=u'Go',
                                    cursor=u'hand2',
@@ -80,6 +83,14 @@ class Seats:
         self.load_json_button.grid(row = 1, 
                                    column=3,
                                    pady=5)
+
+        self.load_name_num_list_button = Button(self.parent,
+                                                text='Load names',
+                                                command=self.on_load_name_num_list_clicked
+                                                )
+        self.load_name_num_list_button.grid(row=1,
+                                            column=4,
+                                            pady=5)
 
     def init_seat_buttons(self):                
         if self.total % self.row_count:
@@ -204,9 +215,15 @@ class Seats:
                                             self.names[idx][1]
                                             )
         if self.input_dialog.message:
-            self.buttons[idx][0].config(text=self.input_dialog.message[0])
-            self.names[idx][0] = self.input_dialog.message[0]
-            self.names[idx][1] = int(self.input_dialog.message[1])
+            text = self.input_dialog.message[0]
+            num = int(self.input_dialog.message[1])
+            if len(text) == 0:
+                text = self.num_to_name[num]
+
+            self.buttons[idx][0].config(text=text)
+            self.names[idx][0] = text
+            self.names[idx][1] = num
+            self.buttons[idx][4] = num
 
     def on_save_as_json_button_clicked(self):
         fName = tkFileDialog.asksaveasfilename(defaultextension='.json',
@@ -216,18 +233,16 @@ class Seats:
         if len(fName) == 0:
             return False
 
-        f = codecs.open(fName, 'w', encoding='utf-8')    
+        with codecs.open(fName, 'w', encoding='utf-8') as f:
+            dst = []
 
-        dst = []
+            for btn in self.buttons:
+                s = Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0, num=btn[4])
+                dst.append(s)
 
-        for btn in self.buttons:
-            s = Student(name=btn[0].cget('text'), row=btn[2], column=btn[3], count=0, num=0)
-            dst.append(s)
+            json.dump(dst, f, ensure_ascii=False, default=lambda obj: obj.__dict__)    
 
-        json.dump(dst, f, ensure_ascii=False, default=lambda obj: obj.__dict__)    
-
-        f.close()
-        return True      
+            return True      
 
     def on_load_json_button_clicked(self):
         fName = tkFileDialog.askopenfilename(defaultextension='.json',
@@ -239,6 +254,29 @@ class Seats:
 
         self.init_seat_buttons_with_json(fName)
         return True
+
+    def on_load_name_num_list_clicked(self):
+        file_name = tkFileDialog.askopenfilename(defaultextension='.csv',
+                                                 initialfile='names.csv'
+                                                 )
+
+        self.load_name_num_list(file_name=file_name)
+
+    def load_name_num_list(self, file_name=os.path.dirname(os.path.realpath(__file__))+'/names.csv'):
+        self.num_to_name = {}
+
+        if len(file_name) == 0:
+            return False
+
+        with open(file_name, 'rb') as f:
+            decode='utf-8'
+
+            if platform == 'win32':
+                decode='utf-8-sig'
+
+            names_reader = csv.reader(f)
+            for row in names_reader:
+                self.num_to_name[int(row[0].decode(decode))] = row[1]
             
 if __name__ == '__main__':
     root = Tk()
