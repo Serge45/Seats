@@ -18,8 +18,8 @@ from student import Student
 
 
 class Seats:
+    seat_mode = ('Edit', 'Swap')
     chosen_button = None
-    seat_button_org_size = [0, 0]
     random_iteration = 50
     current_iteration = 0
     random_iteration_step = (500, 250, 100, 50)
@@ -29,6 +29,7 @@ class Seats:
 
     def __init__(self, master, row_count, total):
         self.parent = master
+        self.current_mode = Seats.seat_mode[0]
         self.row_count = row_count
         self.col_count = total / row_count
         self.total = total
@@ -41,8 +42,11 @@ class Seats:
     def init_gui(self):
         Grid.rowconfigure(self.parent, 0, weight=1)
         Grid.columnconfigure(self.parent, 0, weight=1)
+
+        self.init_mode_buttons()
+
         self.frame = Frame(self.parent)
-        self.frame.grid(row=0, column=0, columnspan=5)
+        self.frame.grid(row=1, column=0, columnspan=5)
         self.go_button = Button(self.parent, 
                                    text=u'Go',
                                    cursor=u'hand2',
@@ -55,12 +59,12 @@ class Seats:
                                          command=self.on_shuffle_button_clicked
                                          )
 
-        self.go_button.grid(row=1, 
+        self.go_button.grid(row=2, 
                             column=0,
                             sticky=W+E,
                             )
 
-        self.shuffle_button.grid(row=1,
+        self.shuffle_button.grid(row=2,
                                  column=1,
                                  sticky=W
                                  ) 
@@ -70,7 +74,7 @@ class Seats:
                                              command=self.on_save_as_json_button_clicked
                                              )
 
-        self.save_as_json_button.grid(row = 1, 
+        self.save_as_json_button.grid(row = 2, 
                                       column=2,
                                       pady=5)
 
@@ -80,7 +84,7 @@ class Seats:
                                              command=self.on_load_json_button_clicked
                                              )
 
-        self.load_json_button.grid(row = 1, 
+        self.load_json_button.grid(row = 2, 
                                    column=3,
                                    pady=5)
 
@@ -88,9 +92,19 @@ class Seats:
                                                 text='Load names',
                                                 command=self.on_load_name_num_list_clicked
                                                 )
-        self.load_name_num_list_button.grid(row=1,
+        self.load_name_num_list_button.grid(row=2,
                                             column=4,
                                             pady=5)
+
+    def init_mode_buttons(self):
+        self.mode_var = StringVar()
+        self.mode_var.set(self.current_mode)    
+        self.mode_normal_button = Radiobutton(self.parent, text='Normal', 
+                                              variable=self.mode_var, value=Seats.seat_mode[0])
+        self.mode_swap_button = Radiobutton(self.parent, text='Swap', 
+                                            variable=self.mode_var, value=Seats.seat_mode[1])
+        self.mode_normal_button.grid(row=0, column=0)
+        self.mode_swap_button.grid(row=0, column=1)
 
     def init_seat_buttons(self):                
         if self.total % self.row_count:
