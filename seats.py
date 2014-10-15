@@ -105,6 +105,7 @@ class Seats:
                                             variable=self.mode_var, value=Seats.seat_mode[1])
         self.mode_normal_button.grid(row=0, column=0)
         self.mode_swap_button.grid(row=0, column=1)
+        self.mode_swap_button.config(state=DISABLED)
 
     def init_seat_buttons(self):                
         if self.total % self.row_count:
